@@ -1,7 +1,12 @@
 <template>
     <div>
         <h1>Product List</h1>
-        <ul>
+        <img
+            v-if="loading"
+            src="https://loading.io/spinners/azure/index.azure-round-loader.svg"
+        >
+
+        <ul v-else>
             <li v-for="(product, item) in products" :key="item">
                 {{ product.title }} - {{ product.price }}
             </li>
@@ -11,17 +16,24 @@
 
 <script>
 import shop from '@/api/shop'
+
 export default {
+    data(){
+        return {
+            loading: false,
+        }
+    },
+
     computed: {
         products(){
-            return this.$store.state.products
+            return this.$store.getters.availableProducts
         }
     },
 
     created(){
-        shop.getProducts( products => {
-            this.$store.commit('setProducts', products)
-        })
+        this.loading = true
+        this.$store.dispatch('fetchproducts')
+        .then(() => this.loading = false)
     }
 }
 </script>
