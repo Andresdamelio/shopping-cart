@@ -6,7 +6,8 @@ Vue.use(Vuex)
 
 export const store = new Vuex.Store({
     state: {
-        products: []
+        products: [],
+        cart:[]
     },
 
     getters:{
@@ -14,8 +15,20 @@ export const store = new Vuex.Store({
             return state.products.filter( product => product.inventory > 0 );
         },
 
-        productsCount(){
+        cartProducts( state ){
+            return state.cart.map( cartItem => {
+                const product = state.products.find(product => product.id === cartItem.id )
 
+                return {
+                    title: product.title,
+                    price: product.price,
+                    quantity: cartItem.quantity
+                }
+            })
+        },
+
+        cartTotal( state, getters) {
+            return getters.cartProducts.reduce( (total, cartItem) => total + (cartItem.price*cartItem.quantity), 0 )
         }
     },
 
@@ -28,11 +41,41 @@ export const store = new Vuex.Store({
                 })
             })
         },
+
+        addProductToCart({ commit, state }, product ){
+            if( product.inventory > 0 ){
+                const cartItem = state.cart.find( item => item.id === product.id)
+
+                if ( !cartItem ){
+                    commit('pushProductToCart', product.id)
+                }else{
+                    commit('incrementItemQuantity', cartItem)
+                }
+
+                commit('decrementProductInventory', product)
+            }
+        }
     },
 
     mutations:{
         setProducts(state, products){
             state.products = products
+        },
+
+        pushProductToCart(state, productId){
+            state.cart.push({
+                id: productId,
+                quantity: 1
+            })
+        },
+
+        incrementItemQuantity(state, cartItem){
+            cartItem.quantity++
+        },
+
+        decrementProductInventory(state, product){
+            product.inventory--
         }
+
     }
 })
