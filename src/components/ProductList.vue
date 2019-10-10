@@ -31,11 +31,14 @@ export default {
         }
     },
 
-    methods:mapActions(['addProductToCart', 'fetchproducts']),
+    methods:mapActions({
+        fetchproducts: 'products/fetchproducts',
+        addProductToCart: 'cart/addProductToCart',
+    }),
 
     computed: {
-        ...mapState(['products']),
-        ...mapGetters(['productIsInStock']),
+        ...mapState('products',{products: 'items'}),
+        ...mapGetters('products',['productIsInStock']),
     },
 
     created(){
