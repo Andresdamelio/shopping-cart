@@ -7,7 +7,8 @@ Vue.use(Vuex)
 export const store = new Vuex.Store({
     state: {
         products: [],
-        cart:[]
+        cart:[],
+        checkoutStatus: null
     },
 
     getters:{
@@ -29,6 +30,12 @@ export const store = new Vuex.Store({
 
         cartTotal( state, getters) {
             return getters.cartProducts.reduce( (total, cartItem) => total + (cartItem.price*cartItem.quantity), 0 )
+        },
+
+        productIsInStock(){
+            return ( product ) => {
+                return product.inventory > 0
+            }
         }
     },
 
@@ -42,8 +49,8 @@ export const store = new Vuex.Store({
             })
         },
 
-        addProductToCart({ commit, state }, product ){
-            if( product.inventory > 0 ){
+        addProductToCart({ commit, state, getters }, product ){
+            if( getters.productIsInStock(product) ){
                 const cartItem = state.cart.find( item => item.id === product.id)
 
                 if ( !cartItem ){
@@ -54,6 +61,15 @@ export const store = new Vuex.Store({
 
                 commit('decrementProductInventory', product)
             }
+        },
+
+        checkout( { commit, state } ) {
+            shop.buyProducts( state.cart, ()=>{
+                commit('emptycart')
+                commit('setCheckoutStatus', 'success')
+            },()=>{
+                commit('setCheckoutStatus', 'fail')
+            })
         }
     },
 
@@ -75,6 +91,14 @@ export const store = new Vuex.Store({
 
         decrementProductInventory(state, product){
             product.inventory--
+        },
+
+        setCheckoutStatus(state, status){
+            state.checkoutStatus = status
+        },
+
+        emptycart(state) {
+            state.cart = []
         }
 
     }
